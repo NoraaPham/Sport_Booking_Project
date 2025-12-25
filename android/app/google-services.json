@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "81865064283",
+    "project_id": "sport-booking-app-75d8c",
+    "storage_bucket": "sport-booking-app-75d8c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:81865064283:android:96bd61bdc219c34d32e47e",
+        "android_client_info": {
+          "package_name": "com.example.sport_booking_project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5-zI5zqmlWfZ0Fzl7zD1AbB1WZezmZGQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

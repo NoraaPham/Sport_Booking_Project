@@ -1,0 +1,47 @@
+name: sport_booking_project
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+# 1. Sửa lỗi "no lower-bound SDK constraint" và mã lỗi 65
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # 2. Cập nhật các phiên bản Firebase để tương thích với geolocator ^13.0.1
+  firebase_core: ^3.1.0
+  firebase_auth: ^5.1.0
+  cloud_firestore: ^5.0.0
+
+  # 3. Thêm thư viện lấy vị trí thật
+  geolocator: ^13.0.1
+  geocoding: ^3.0.0
+
+  # --- THƯ VIỆN HIỆU ỨNG ---
+  lottie: ^3.1.2
+  flutter_animate: ^4.5.0
+
+  # Logic & UI khác
+  provider: ^6.1.2
+  table_calendar: ^3.1.2
+  font_awesome_flutter: ^10.7.0
+  cupertino_icons: ^1.0.8
+  google_fonts: ^6.2.1
+  intl: ^0.19.0
+  url_launcher: ^6.2.6
+  shared_preferences: ^2.2.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/images/logo2.png
+    - assets/icons/
