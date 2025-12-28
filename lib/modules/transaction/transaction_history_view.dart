@@ -26,7 +26,7 @@ class _TransactionHistoryViewState extends State<TransactionHistoryView>
       appBar: AppBar(
         toolbarHeight: kTextTabBarHeight,
         title: Text(
-          "Transaction",
+          "Giao dịch", // Đã Việt hóa từ "Transaction"
           style: titleTextStyle,
         ),
         backgroundColor: backgroundColor,
@@ -40,10 +40,10 @@ class _TransactionHistoryViewState extends State<TransactionHistoryView>
           indicatorColor: primaryColor500,
           tabs: const [
             Tab(
-              text: "Order",
+              text: "Đơn đặt", // Đã Việt hóa từ "Order"
             ),
             Tab(
-              text: "History",
+              text: "Lịch sử", // Đã Việt hóa từ "History"
             ),
           ],
         ),

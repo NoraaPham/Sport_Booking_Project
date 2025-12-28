@@ -6,7 +6,7 @@ import 'package:sport_booking_project/modules/transaction/transaction_history_vi
 import 'package:sport_booking_project/theme.dart';
 
 class RootView extends StatefulWidget {
-  int currentScreen = 0;
+  final int currentScreen; // Chuyển thành final để đúng chuẩn
 
   RootView({required this.currentScreen});
 
@@ -30,16 +30,15 @@ class _RootViewState extends State<RootView> {
 
   @override
   Widget build(BuildContext context) {
+    // Ép thanh trạng thái StatusBar trong suốt để đồng bộ màu Header
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+    ));
+
     return WillPopScope(
       onWillPop: () async => await _onBackPressed(),
       child: Scaffold(
-        appBar: AppBar(
-          elevation: 0,
-          toolbarHeight: 0,
-          systemOverlayStyle: const SystemUiOverlayStyle(
-              statusBarColor: backgroundColor,
-              statusBarIconBrightness: Brightness.dark),
-        ),
         backgroundColor: backgroundColor,
         body: screens[_currentIndex],
         bottomNavigationBar: CustomBottomNavBar(
@@ -54,7 +53,8 @@ class _RootViewState extends State<RootView> {
             "assets/icons/receipt_outlined.png",
             "assets/icons/settings_outlined.png"
           ],
-          label: const ["Home", "Transaction", "Settings"],
+          // 👉 ĐÃ ĐỔI TÊN SANG TIẾNG VIỆT
+          label: const ["Trang chủ", "Lịch sử", "Hồ sơ"],
           onChange: (val) {
             setState(() {
               _currentIndex = val;
@@ -67,22 +67,22 @@ class _RootViewState extends State<RootView> {
 
   Future<bool> _onBackPressed() async {
     return await showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Exit the App'),
-            content: const Text('Do you want to exit the application?'),
-            actions: <Widget>[
-              // const SizedBox(height: 16),
-              TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('No')),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Yes'),
-              ),
-            ],
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Thoát ứng dụng'),
+        content: const Text('Bạn có chắc chắn muốn thoát ứng dụng không?'),
+        actions: <Widget>[
+          TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Không')),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Thoát', style: TextStyle(color: Colors.red)),
           ),
-        ) ??
+        ],
+      ),
+    ) ??
         false;
   }
 }
@@ -96,10 +96,10 @@ class CustomBottomNavBar extends StatefulWidget {
 
   const CustomBottomNavBar(
       {this.defaultSelectedIndex = 0,
-      required this.selectedItemIcon,
-      required this.unselectedItemIcon,
-      required this.label,
-      required this.onChange});
+        required this.selectedItemIcon,
+        required this.unselectedItemIcon,
+        required this.label,
+        required this.onChange});
 
   @override
   State<CustomBottomNavBar> createState() => _CustomBottomNavBarState();
@@ -107,17 +107,11 @@ class CustomBottomNavBar extends StatefulWidget {
 
 class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
   int _selectedIndex = 0;
-  List<String> _selectedItemIcon = [];
-  List<String> _unselectedItemIcon = [];
-  List<String> _label = [];
 
   @override
   void initState() {
     super.initState();
     _selectedIndex = widget.defaultSelectedIndex;
-    _selectedItemIcon = widget.selectedItemIcon;
-    _unselectedItemIcon = widget.unselectedItemIcon;
-    _label = widget.label;
   }
 
   @override
@@ -126,12 +120,20 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
 
     for (int i = 0; i < 3; i++) {
       _navBarItems.add(bottomNavBarItem(
-          _selectedItemIcon[i], _unselectedItemIcon[i], _label[i], i));
+          widget.selectedItemIcon[i], widget.unselectedItemIcon[i], widget.label[i], i));
     }
     return Container(
-      decoration: const BoxDecoration(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
           color: colorWhite,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(18))),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 15,
+              offset: const Offset(0, -5),
+            )
+          ],
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20))),
       child: Row(
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -141,6 +143,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
   }
 
   Widget bottomNavBarItem(activeIcon, inactiveIcon, label, index) {
+    bool isSelected = _selectedIndex == index;
     return GestureDetector(
       onTap: () {
         widget.onChange(index);
@@ -148,47 +151,34 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
           _selectedIndex = index;
         });
       },
-      child: Container(
-        height: kBottomNavigationBarHeight,
-        width: MediaQuery.of(context).size.width / _selectedItemIcon.length,
-        decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius:
-                BorderRadius.vertical(top: Radius.circular(borderRadiusSize))),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: _selectedIndex == index
-              ? Container(
-                  decoration: BoxDecoration(
-                      color: primaryColor100,
-                      borderRadius: BorderRadius.circular(borderRadiusSize)),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Image.asset(
-                        activeIcon,
-                        width: 22,
-                        height: 22,
-                        color: primaryColor500,
-                      ),
-                      Text(
-                        label,
-                        style: bottomNavTextStyle,
-                      )
-                    ],
-                  ),
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      inactiveIcon,
-                      width: 22,
-                      height: 22,
-                      color: primaryColor300,
-                    ),
-                  ],
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          // Nền khi chọn là Emerald nhạt (Mint)
+            color: isSelected ? primaryColor100 : Colors.transparent,
+            borderRadius: BorderRadius.circular(borderRadiusSize)),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              isSelected ? activeIcon : inactiveIcon,
+              width: 22, height: 22,
+              // 👉 ICON: Emerald khi chọn, xám đậm/đen khi không chọn
+              color: isSelected ? primaryColor500 : darkBlue300.withOpacity(0.6),
+            ),
+            if (isSelected) ...[
+              const SizedBox(width: 8),
+              Text(
+                label,
+                // 👉 CHỮ: Màu đen/xanh rừng đậm từ theme (darkBlue500)
+                style: bottomNavTextStyle.copyWith(
+                    color: darkBlue500,
+                    fontWeight: FontWeight.bold
                 ),
+              )
+            ]
+          ],
         ),
       ),
     );

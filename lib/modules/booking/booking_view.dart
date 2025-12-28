@@ -21,11 +21,14 @@ class BookingView extends StatefulWidget {
 }
 
 class _BookingViewState extends State<BookingView> {
-  // DATE
+  // --- GIỮ NGUYÊN 100% BIẾN LOGIC CỦA BẠN ---
   final int _currentMonth = TimeUtils.getCurrentMonth();
   final int _currentYear = TimeUtils.getCurrentYear();
   int _selectedMonth = TimeUtils.getCurrentMonth();
-  String _selectedMonthName = TimeUtils.getCurrentMonthName();
+
+  // SỬA: Ép kiểu lấy tên tháng tiếng Việt chuẩn
+  String _selectedMonthName = DateFormat('MMMM', 'vi').format(DateTime.now());
+
   int _selectedYear = TimeUtils.getCurrentYear();
   final bool _isNextMonthValid = true;
   bool _isPrevMonthValid = false;
@@ -33,15 +36,20 @@ class _BookingViewState extends State<BookingView> {
       month: TimeUtils.getCurrentMonth(), year: TimeUtils.getCurrentYear());
   int _selectedDate = 0;
 
-  // TIME
   final String _selectedTime = "";
 
   final TextEditingController _controller = TextEditingController();
-  final dateFormat = DateFormat("EEEE, dd MMM yyyy");
+  final dateFormat = DateFormat("EEEE, dd MMM yyyy", "vi"); // Đổi locale sang 'vi'
   int _totalBill = 0;
   bool _isLoading = false;
   bool _enableCreateOrderBtn = false;
   final List<String> _selectedTimes = [];
+
+  // --- HỆ MÀU GO SPORT ---
+  final Color primaryEmerald = const Color(0xFF4A9B7B);
+  final Color darkForest = const Color(0xFF1B4332);
+  final Color bgMint = const Color(0xFFF1F6F2);
+  final Color customBrown = const Color(0xFF8D6E63);
 
   @override
   void initState() {
@@ -51,9 +59,9 @@ class _BookingViewState extends State<BookingView> {
     });
   }
 
+  // --- GIỮ NGUYÊN LOGIC CHECK TRÙNG LỊCH ---
   Future<bool> _checkAvailability(String venueId, String date, List<String> times) async {
     try {
-      // Lấy tất cả đơn hàng của sân này trong ngày này
       final QuerySnapshot result = await FirebaseFirestore.instance
           .collection('orders')
           .where('venueId', isEqualTo: venueId)
@@ -61,7 +69,7 @@ class _BookingViewState extends State<BookingView> {
           .get();
 
       for (var doc in result.docs) {
-        List<dynamic> bookedTimes = doc['selectedTime']; // Các giờ đã bị đặt
+        List<dynamic> bookedTimes = doc['selectedTime'];
         for (String time in times) {
           if (bookedTimes.contains(time)) {
             return false;
@@ -78,17 +86,22 @@ class _BookingViewState extends State<BookingView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: bgMint, // Đổi màu nền nền
       body: CustomScrollView(
         slivers: [
-          const SliverAppBar(
-            systemOverlayStyle: SystemUiOverlayStyle(
-              statusBarColor: colorWhite,
+          SliverAppBar(
+            systemOverlayStyle: const SystemUiOverlayStyle(
+              statusBarColor: Colors.white,
               statusBarIconBrightness: Brightness.dark,
             ),
-            title: Text("Booking"),
-            backgroundColor: colorWhite,
+            title: Text("Đặt lịch sân", style: TextStyle(color: darkForest, fontWeight: FontWeight.bold)),
+            backgroundColor: Colors.white,
             centerTitle: true,
-            foregroundColor: primaryColor500,
+            foregroundColor: darkForest,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back_ios_new_rounded, color: darkForest, size: 20),
+              onPressed: () => Navigator.pop(context),
+            ),
           ),
           SliverPadding(
             padding:
@@ -100,8 +113,8 @@ class _BookingViewState extends State<BookingView> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        "Venue Name",
-                        style: subTitleTextStyle,
+                        "Tên sân", // Việt hóa
+                        style: subTitleTextStyle.copyWith(color: darkForest),
                       ),
                       const SizedBox(
                         height: 8,
@@ -110,23 +123,19 @@ class _BookingViewState extends State<BookingView> {
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                             border:
-                            Border.all(color: primaryColor100, width: 2),
-                            color: lightBlue100,
+                            Border.all(color: primaryEmerald.withOpacity(0.1), width: 1),
+                            color: Colors.white,
                             borderRadius:
-                            BorderRadius.circular(borderRadiusSize)),
+                            BorderRadius.circular(12)),
                         child: Row(
                           children: [
-                            Image.asset(
-                              "assets/icons/pin.png",
-                              width: 24,
-                              height: 24,
-                              color: primaryColor500,
-                            ),
+                            Icon(Icons.location_on, color: primaryEmerald),
                             const SizedBox(
                               width: 8,
                             ),
                             Text(widget.field.name,
                                 style: normalTextStyle.copyWith(
+                                    color: darkForest,
                                     fontWeight: FontWeight.w600)),
                           ],
                         ),
@@ -142,28 +151,23 @@ class _BookingViewState extends State<BookingView> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("Pick a date", style: subTitleTextStyle),
+                              Text("Chọn ngày", style: subTitleTextStyle.copyWith(color: darkForest)), // Việt hóa
                               const SizedBox(height: 16),
                               Row(
                                 mainAxisAlignment:
-                                MainAxisAlignment.spaceAround,
+                                MainAxisAlignment.spaceBetween,
                                 children: [
                                   GestureDetector(
                                     onTap: () {
                                       if (_isPrevMonthValid) {
                                         setState(() {
-                                          // update month and year
                                           if (_selectedMonth - 1 == 0) {
                                             _selectedMonth = 12;
                                             _selectedYear = _selectedYear - 1;
                                           } else {
                                             _selectedMonth = _selectedMonth - 1;
                                           }
-
-                                          // update view
-                                          _selectedMonthName =
-                                              TimeUtils.getMonthNameWithLocale(
-                                                  month: _selectedMonth);
+                                          _selectedMonthName = DateFormat('MMMM', 'vi').format(DateTime(_selectedYear, _selectedMonth));
                                           _isPrevMonthValid =
                                               _selectedMonth > _currentMonth ||
                                                   _selectedYear > _currentYear;
@@ -177,11 +181,11 @@ class _BookingViewState extends State<BookingView> {
                                     child: Container(
                                       decoration: BoxDecoration(
                                         color: (_isPrevMonthValid)
-                                            ? neutral700
+                                            ? primaryEmerald
                                             : neutral50,
                                         borderRadius: BorderRadius.circular(8),
                                       ),
-                                      padding: const EdgeInsets.all(4),
+                                      padding: const EdgeInsets.all(6),
                                       child: Icon(
                                         Icons.arrow_back_ios_rounded,
                                         size: 16,
@@ -191,23 +195,20 @@ class _BookingViewState extends State<BookingView> {
                                       ),
                                     ),
                                   ),
-                                  Text("$_selectedMonthName $_selectedYear", style: descTextStyle,),
+                                  // Hiển thị tên tháng tiếng Việt viết hoa chữ cái đầu
+                                  Text("${_selectedMonthName[0].toUpperCase()}${_selectedMonthName.substring(1)} $_selectedYear",
+                                      style: descTextStyle.copyWith(color: primaryEmerald, fontWeight: FontWeight.bold, fontSize: 16)),
                                   GestureDetector(
                                     onTap: () {
                                       if (_isNextMonthValid) {
                                         setState(() {
-                                          // update month and year
                                           if (_selectedMonth + 1 == 13) {
                                             _selectedMonth = 1;
                                             _selectedYear = _selectedYear + 1;
                                           } else {
                                             _selectedMonth = _selectedMonth + 1;
                                           }
-
-                                          // update view
-                                          _selectedMonthName =
-                                              TimeUtils.getMonthNameWithLocale(
-                                                  month: _selectedMonth);
+                                          _selectedMonthName = DateFormat('MMMM', 'vi').format(DateTime(_selectedYear, _selectedMonth));
                                           _isPrevMonthValid =
                                               _selectedMonth > _currentMonth ||
                                                   _selectedYear > _currentYear;
@@ -217,19 +218,15 @@ class _BookingViewState extends State<BookingView> {
                                                   year: _selectedYear);
                                         });
                                       }
-                                      debugPrint(
-                                          "selected month = $_selectedMonthName, selected year: $_selectedYear");
-                                      debugPrint(
-                                          "_isPrevMonthValid = $_isPrevMonthValid");
                                     },
                                     child: Container(
                                       decoration: BoxDecoration(
                                         color: (_isNextMonthValid)
-                                            ? neutral700
+                                            ? primaryEmerald
                                             : neutral50,
                                         borderRadius: BorderRadius.circular(8),
                                       ),
-                                      padding: const EdgeInsets.all(4),
+                                      padding: const EdgeInsets.all(6),
                                       child: Icon(
                                         Icons.arrow_forward_ios_rounded,
                                         size: 16,
@@ -241,47 +238,46 @@ class _BookingViewState extends State<BookingView> {
                                   )
                                 ],
                               ),
-                              // const SizedBox(height: 16),
-                              GridView.count(
-                                crossAxisCount: 6,
+                              const SizedBox(height: 20),
+                              GridView.builder(
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
-                                crossAxisSpacing: 8,
-                                mainAxisSpacing: 8,
-                                children: _availableDates
-                                    .map((e) => GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _selectedDate = e;
-                                    });
-                                  },
-                                  child: Container(
-                                    width: 40,
-                                    decoration: BoxDecoration(
-                                        color: (_selectedDate == e)
-                                            ? primaryColor100
-                                            : Colors.white,
-                                        borderRadius:
-                                        BorderRadius.circular(8),
-                                        border: Border.all(
-                                            color: (_selectedDate == e)
-                                                ? primaryColor500
-                                                : neutral200,
-                                            width: 1)),
-                                    alignment: Alignment.center,
-                                    padding: const EdgeInsets.all(8),
-                                    child: Text(
-                                      e.toString(),
-                                      style: descTextStyle.copyWith(
-                                        color: (_selectedDate == e)
-                                            ? primaryColor500
-                                            : neutral700,
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 6,
+                                  mainAxisSpacing: 10,
+                                  crossAxisSpacing: 10,
+                                  childAspectRatio: 1.0, // Hình vuông to đẹp
+                                ),
+                                itemCount: _availableDates.length,
+                                itemBuilder: (context, index) {
+                                  int day = _availableDates[index];
+                                  bool isSelected = _selectedDate == day;
+                                  return GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedDate = day;
+                                        _enableCreateOrderBtn = _selectedTimes.isNotEmpty && _selectedDate != 0;
+                                      });
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                          color: isSelected ? primaryEmerald : Colors.white,
+                                          borderRadius: BorderRadius.circular(10),
+                                          border: Border.all(
+                                              color: isSelected ? primaryEmerald : neutral200,
+                                              width: 1)),
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        day.toString(),
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: isSelected ? Colors.white : darkForest,
+                                        ),
                                       ),
-                                      textAlign: TextAlign.center,
                                     ),
-                                  ),
-                                ))
-                                    .toList(),
+                                  );
+                                },
                               ),
                             ],
                           ),
@@ -299,75 +295,27 @@ class _BookingViewState extends State<BookingView> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("Pick a Time", style: subTitleTextStyle,),
+                              Text("Chọn khung giờ", style: subTitleTextStyle.copyWith(color: darkForest)), // Việt hóa
                               const SizedBox(
                                 height: 8,
                               ),
                               Row(
                                 children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        width: 12,
-                                        height: 12,
-                                        decoration: BoxDecoration(
-                                          color: primaryColor100,
-                                          border: Border.all(
-                                              color: primaryColor500),
-                                        ),
-                                      ),
-                                      const SizedBox(
-                                        width: 8,
-                                      ),
-                                      Text("Choosed", style: descTextStyle,)
-                                    ],
-                                  ),
-                                  const SizedBox(
-                                    width: 16,
-                                  ),
-                                  Row(
-                                    children: [
-                                      Container(
-                                        width: 12,
-                                        height: 12,
-                                        decoration: BoxDecoration(
-                                            border:
-                                            Border.all(color: neutral200)),
-                                      ),
-                                      const SizedBox(
-                                        width: 8,
-                                      ),
-                                      Text("Empty", style: descTextStyle,)
-                                    ],
-                                  ),
-                                  const SizedBox(
-                                    width: 16,
-                                  ),
-                                  Row(
-                                    children: [
-                                      Container(
-                                        width: 12,
-                                        height: 12,
-                                        decoration: const BoxDecoration(
-                                          color: neutral200,
-                                        ),
-                                      ),
-                                      const SizedBox(
-                                        width: 8,
-                                      ),
-                                      Text("Not Available", style: descTextStyle,)
-                                    ],
-                                  ),
+                                  _buildLegend(primaryEmerald, "Đang chọn"),
+                                  const SizedBox(width: 16),
+                                  _buildLegend(Colors.white, "Trống", border: true),
+                                  const SizedBox(width: 16),
+                                  _buildLegend(neutral200, "Đã đặt"),
                                 ],
                               ),
-                              // const SizedBox(height: 16,),
+                              const SizedBox(height: 20),
                               GridView.count(
                                 crossAxisCount: 4,
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
-                                crossAxisSpacing: 16,
-                                mainAxisSpacing: 16,
-                                childAspectRatio: 2,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                                childAspectRatio: 2.1,
                                 children: availableTimeList.map(
                                       (e) {
                                     final isSelected =
@@ -376,30 +324,23 @@ class _BookingViewState extends State<BookingView> {
                                       onTap: () {
                                         setState(() {
                                           if (e.isAvailable) {
-                                            // _selectedTime = e.time;
-                                            debugPrint(
-                                                "selected time: $_selectedTime");
-
                                             if (_selectedTimes.contains(e.time)) {
                                               _selectedTimes.remove(e.time);
-                                              _enableCreateOrderBtn =
-                                                  _selectedTimes.isNotEmpty &&
-                                                      _selectedDate != 0;
                                               _totalBill -= widget.field.price;
                                             } else {
                                               _selectedTimes.add(e.time);
-                                              _enableCreateOrderBtn =
-                                                  _selectedTimes.isNotEmpty &&
-                                                      _selectedDate != 0;
                                               _totalBill += widget.field.price;
                                             }
+                                            _enableCreateOrderBtn =
+                                                _selectedTimes.isNotEmpty &&
+                                                    _selectedDate != 0;
                                           }
                                         });
                                       },
                                       child: Container(
                                         decoration: BoxDecoration(
                                             color: (isSelected)
-                                                ? primaryColor100
+                                                ? primaryEmerald
                                                 : e.isAvailable
                                                 ? Colors.white
                                                 : neutral200,
@@ -407,19 +348,18 @@ class _BookingViewState extends State<BookingView> {
                                             BorderRadius.circular(8),
                                             border: Border.all(
                                                 color: (isSelected)
-                                                    ? primaryColor500
-                                                    : e.isAvailable
-                                                    ? neutral200
+                                                    ? primaryEmerald
                                                     : neutral200,
                                                 width: 1)),
                                         alignment: Alignment.center,
                                         child: Text(
                                           e.time,
                                           style: descTextStyle.copyWith(
+                                            fontWeight: FontWeight.bold,
                                             color: (isSelected)
-                                                ? primaryColor500
+                                                ? Colors.white
                                                 : e.isAvailable
-                                                ? neutral700
+                                                ? darkForest
                                                 : neutral500,
                                           ),
                                           textAlign: TextAlign.center,
@@ -442,11 +382,11 @@ class _BookingViewState extends State<BookingView> {
         ],
       ),
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
         decoration: const BoxDecoration(color: Colors.white, boxShadow: [
           BoxShadow(
-            color: lightBlue300,
-            offset: Offset(0, 0),
+            color: Colors.black12,
+            offset: Offset(0, -2),
             blurRadius: 10,
           )
         ]),
@@ -455,14 +395,15 @@ class _BookingViewState extends State<BookingView> {
           children: [
             Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Total:",
+                  "Tổng thanh toán:",
                   style: descTextStyle,
                 ),
                 Text(
-                  "Rp $_totalBill",
-                  style: priceTextStyle,
+                  "${NumberFormat("#,##0", "vi_VN").format(_totalBill)}đ",
+                  style: TextStyle(color: customBrown, fontSize: 22, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -472,20 +413,20 @@ class _BookingViewState extends State<BookingView> {
             Expanded(
               child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(100, 45),
+                      backgroundColor: darkForest,
+                      minimumSize: const Size(100, 55),
+                      elevation: 0,
                       shape: RoundedRectangleBorder(
                           borderRadius:
-                          BorderRadius.circular(borderRadiusSize))),
-                  onPressed: !_enableCreateOrderBtn
+                          BorderRadius.circular(16))),
+                  onPressed: !_enableCreateOrderBtn || _isLoading
                       ? null
                       : () async {
-                    // Hiển thị loading
                     setState(() {
                       _isLoading = true;
                     });
 
                     try {
-                      // 2. Lấy user thật (không dùng sampleUser)
                       final user = FirebaseAuth.instance.currentUser;
                       if (user == null) {
                         _showSnackBar(context, "Lỗi: Bạn chưa đăng nhập.");
@@ -493,21 +434,18 @@ class _BookingViewState extends State<BookingView> {
                         return;
                       }
 
-                      // 3. Chuẩn bị dữ liệu
                       DateTime selectedDateTime =
                       DateTime(_selectedYear, _selectedMonth, _selectedDate);
                       String formattedDate =
                       dateFormat.format(selectedDateTime).toString();
 
-                      // --- 🔥 KIỂM TRA TRÙNG LỊCH TRƯỚC KHI TẠO ---
                       bool isAvailable = await _checkAvailability(widget.field.id, formattedDate, _selectedTimes);
 
                       if (!isAvailable) {
                         _showSnackBar(context, "Rất tiếc! Giờ bạn chọn vừa có người khác đặt rồi.");
                         setState(() { _isLoading = false; });
-                        return; // DỪNG LẠI NGAY
+                        return;
                       }
-                      // ----------------------------------------------
 
                       Map<String, dynamic> orderData = {
                         'userId': user.uid,
@@ -522,12 +460,10 @@ class _BookingViewState extends State<BookingView> {
                         'createdAt': FieldValue.serverTimestamp(),
                       };
 
-                      // 4. Gửi lên Firebase
                       await FirebaseFirestore.instance
                           .collection('orders')
                           .add(orderData);
 
-                      // 5. Điều hướng sau khi thành công
                       Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(
@@ -535,13 +471,11 @@ class _BookingViewState extends State<BookingView> {
                                   RootView(currentScreen: 1)),
                               (route) => false);
                       _showSnackBar(
-                          context, "Tạo đơn hàng thành công!");
+                          context, "Đặt sân thành công!");
 
                     } catch (e) {
-                      // Xử lý lỗi
                       _showSnackBar(context, "Lỗi khi tạo đơn: $e");
                     } finally {
-                      // Ẩn loading
                       if (mounted) {
                         setState(() {
                           _isLoading = false;
@@ -550,10 +484,10 @@ class _BookingViewState extends State<BookingView> {
                     }
                   },
                   child: _isLoading
-                      ? CircularProgressIndicator(color: Colors.white)
+                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                       : Text(
-                    "Create Order",
-                    style: buttonTextStyle,
+                    "Tạo đơn hàng",
+                    style: buttonTextStyle.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
                   )),
             ),
           ],
@@ -562,11 +496,28 @@ class _BookingViewState extends State<BookingView> {
     );
   }
 
+  // Widget hiển thị chú thích
+  Widget _buildLegend(Color color, String text, {bool border = false}) {
+    return Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(3),
+            border: border ? Border.all(color: neutral200) : null,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(text, style: descTextStyle.copyWith(fontSize: 12))
+      ],
+    );
+  }
+
   void _showSnackBar(BuildContext context, String message) {
-    final scaffold = ScaffoldMessenger.of(context);
-    scaffold.showSnackBar(SnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(message),
-      margin: const EdgeInsets.all(16),
       behavior: SnackBarBehavior.floating,
       duration: const Duration(seconds: 2),
     ));

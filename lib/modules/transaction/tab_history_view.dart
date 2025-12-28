@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sport_booking_project/theme.dart';
 import 'package:sport_booking_project/components/no_transaction_message.dart';
-import 'package:intl/intl.dart'; // Để format tiền đẹp hơn
+import 'package:intl/intl.dart';
 
 class TabHistoryView extends StatelessWidget {
   const TabHistoryView({Key? key}) : super(key: key);
@@ -14,7 +14,7 @@ class TabHistoryView extends StatelessWidget {
     final currencyFormat = NumberFormat("#,##0", "vi_VN");
 
     if (user == null) {
-      return Center(child: Text("Vui lòng đăng nhập để xem lịch sử"));
+      return const Center(child: Text("Vui lòng đăng nhập để xem lịch sử"));
     }
 
     final Query historyQuery = FirebaseFirestore.instance
@@ -29,7 +29,7 @@ class TabHistoryView extends StatelessWidget {
         stream: historyQuery.snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) return Center(child: Text("Lỗi: ${snapshot.error}"));
-          if (snapshot.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
+          if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return Center(
@@ -43,13 +43,13 @@ class TabHistoryView extends StatelessWidget {
           }
 
           return ListView.separated(
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
             itemCount: snapshot.data!.docs.length,
-            separatorBuilder: (context, index) => SizedBox(height: 16), // Khoảng cách giữa các thẻ
+            separatorBuilder: (context, index) => const SizedBox(height: 16),
             itemBuilder: (context, index) {
               var data = snapshot.data!.docs[index].data() as Map<String, dynamic>;
 
-              String venueName = data['venueName'] ?? 'Sân bóng';
+              String venueName = data['venueName'] ?? 'Sân thể thao';
               String date = data['selectedDate'] ?? 'N/A';
               String imageAsset = data['imageAsset'] ?? 'assets/images/vio_basketball.jpg';
               String timeDisplay = (data['selectedTime'] is List)
@@ -65,19 +65,17 @@ class TabHistoryView extends StatelessWidget {
                     BoxShadow(
                       color: Colors.grey.withOpacity(0.1),
                       blurRadius: 10,
-                      offset: Offset(0, 4),
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
                 child: Column(
                   children: [
-                    // PHẦN TRÊN: ẢNH VÀ THÔNG TIN CƠ BẢN
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Ảnh sân bo tròn
                           ClipRRect(
                             borderRadius: BorderRadius.circular(12),
                             child: Image.asset(
@@ -86,8 +84,7 @@ class TabHistoryView extends StatelessWidget {
                               fit: BoxFit.cover,
                             ),
                           ),
-                          SizedBox(width: 16),
-                          // Thông tin
+                          const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,19 +98,19 @@ class TabHistoryView extends StatelessWidget {
                                   ),
                                   maxLines: 2, overflow: TextOverflow.ellipsis,
                                 ),
-                                SizedBox(height: 8),
+                                const SizedBox(height: 8),
                                 Row(
                                   children: [
-                                    Icon(Icons.calendar_today_outlined, size: 14, color: Colors.grey),
-                                    SizedBox(width: 6),
+                                    const Icon(Icons.calendar_today_outlined, size: 14, color: Colors.grey),
+                                    const SizedBox(width: 6),
                                     Text(date, style: descTextStyle.copyWith(fontSize: 12)),
                                   ],
                                 ),
-                                SizedBox(height: 4),
+                                const SizedBox(height: 4),
                                 Row(
                                   children: [
-                                    Icon(Icons.access_time, size: 14, color: Colors.grey),
-                                    SizedBox(width: 6),
+                                    const Icon(Icons.access_time, size: 14, color: Colors.grey),
+                                    const SizedBox(width: 6),
                                     Expanded(
                                       child: Text(timeDisplay, style: descTextStyle.copyWith(fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
                                     ),
@@ -125,32 +122,27 @@ class TabHistoryView extends StatelessWidget {
                         ],
                       ),
                     ),
-
-                    // ĐƯỜNG KẺ NGANG (Dashed line simulator)
                     Container(
                       height: 1,
                       color: Colors.grey[200],
-                      margin: EdgeInsets.symmetric(horizontal: 16),
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
                     ),
-
-                    // PHẦN DƯỚI: TRẠNG THÁI VÀ GIÁ TIỀN
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Badge trạng thái
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                              color: Colors.green[50], // Nền xanh nhạt
+                              color: Colors.green[50],
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(color: Colors.green.withOpacity(0.2)),
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.check_circle, size: 14, color: Colors.green),
-                                SizedBox(width: 6),
+                                const Icon(Icons.check_circle, size: 14, color: Colors.green),
+                                const SizedBox(width: 6),
                                 Text(
                                   "Hoàn thành",
                                   style: TextStyle(
@@ -162,8 +154,6 @@ class TabHistoryView extends StatelessWidget {
                               ],
                             ),
                           ),
-
-                          // Giá tiền
                           Text(
                             "${currencyFormat.format(totalPrice)} đ",
                             style: priceTextStyle.copyWith(

@@ -4,7 +4,6 @@ import 'package:sport_booking_project/theme.dart';
 
 class AddEditVenueView extends StatefulWidget {
   final DocumentSnapshot? document;
-
   AddEditVenueView({this.document});
 
   @override
@@ -12,23 +11,27 @@ class AddEditVenueView extends StatefulWidget {
 }
 
 class _AddEditVenueViewState extends State<AddEditVenueView> {
+  // Bảng màu đồng bộ hệ thống Emerald & Mint
+  final Color bgMint = const Color(0xFFF1F6F2);
+  final Color primaryEmerald = const Color(0xFF4A9B7B);
+  final Color darkForest = const Color(0xFF1B4332);
+  final Color customBrown = const Color(0xFF8D6E63);
+
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _addressController = TextEditingController();
   final _priceController = TextEditingController();
 
-
-  // Lưu ý: 'image' (icon) vẫn giữ để lưu vào Firebase cho đồng bộ với app User
+  // Danh mục môn thể thao kèm ảnh đại diện cho bước 1
   final List<Map<String, dynamic>> _categories = [
-    {'name': 'Futsal', 'image': 'assets/icons/soccer.png', 'realImage': 'assets/images/pringsewu_futsal.jpg'},
-    {'name': 'Badminton', 'image': 'assets/icons/tennis.png', 'realImage': 'assets/images/wing_tennis.jpg'},
-    {'name': 'Basketball', 'image': 'assets/icons/basketball.png', 'realImage': 'assets/images/vio_basketball.jpg'},
+    {'name': 'Bóng đá', 'image': 'assets/icons/soccer.png', 'realImage': 'assets/images/pringsewu_futsal.jpg'},
+    {'name': 'Cầu lông', 'image': 'assets/icons/tennis.png', 'realImage': 'assets/images/wing_tennis.jpg'},
+    {'name': 'Bóng rổ', 'image': 'assets/icons/basketball.png', 'realImage': 'assets/images/vio_basketball.jpg'},
     {'name': 'Tennis', 'image': 'assets/icons/tennis.png', 'realImage': 'assets/images/dc_tennis_court.jpg'},
-    {'name': 'Volley', 'image': 'assets/icons/volley.png', 'realImage': 'assets/images/voli_pantai.jpg'},
-    {'name': 'Table Tennis', 'image': 'assets/icons/table_tennis.png', 'realImage': 'assets/images/tenis_meja_cortez.jpg'},
+    {'name': 'Bóng chuyền', 'image': 'assets/icons/volley.png', 'realImage': 'assets/images/voli_pantai.jpg'},
   ];
 
-  // Danh sách ảnh mẫu cho bước nhập liệu
+  // Danh sách ảnh mẫu để người dùng chọn làm ảnh bìa
   final List<String> _sampleImages = [
     'assets/images/vio_basketball.jpg',
     'assets/images/pringsewu_futsal.jpg',
@@ -42,9 +45,8 @@ class _AddEditVenueViewState extends State<AddEditVenueView> {
     'assets/images/wing_tennis.jpg',
   ];
 
-  String _selectedCategoryName = '';
+  String _selectedCategoryName = 'Bóng đá';
   bool _isCategorySelected = false;
-
   String _selectedImageAsset = 'assets/images/vio_basketball.jpg';
   bool _isLoading = false;
 
@@ -58,53 +60,58 @@ class _AddEditVenueViewState extends State<AddEditVenueView> {
       _priceController.text = (data['price'] ?? 0).toString();
       _selectedImageAsset = data['imageAsset'] ?? _sampleImages[0];
 
-      if (data['category'] != null) {
-        _selectedCategoryName = data['category']['name'] ?? 'Futsal';
-      } else {
-        _selectedCategoryName = 'Futsal';
-      }
+      // Map ngược từ dữ liệu cũ (nếu có)
+      String type = data['type'] ?? (data['category'] != null ? data['category']['name'] : 'Bóng đá');
+      _selectedCategoryName = _mapTypeToVietnamese(type);
       _isCategorySelected = true;
     }
   }
 
-  String _getCategoryImage(String name) {
-    var cat = _categories.firstWhere((element) => element['name'] == name, orElse: () => _categories[0]);
-    return cat['image']!;
+  String _mapTypeToVietnamese(String type) {
+    switch (type.toLowerCase()) {
+      case 'futsal': return "Bóng đá";
+      case 'badminton': return "Cầu lông";
+      case 'tennis': return "Tennis";
+      case 'basketball': return "Bóng rổ";
+      case 'volley': return "Bóng chuyền";
+      default: return type;
+    }
   }
 
+  // --- LOGIC CHỌN ẢNH BÌA (FIXED) ---
   void _showImagePicker() {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
       builder: (BuildContext context) {
         return Container(
-          padding: EdgeInsets.all(16),
-          height: 400,
+          padding: const EdgeInsets.all(24),
+          height: 450,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Chọn ảnh bìa sân", style: titleTextStyle),
-              SizedBox(height: 16),
+              Text("Chọn ảnh bìa sân", style: titleTextStyle.copyWith(color: darkForest)),
+              const SizedBox(height: 20),
               Expanded(
                 child: GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3, crossAxisSpacing: 10, mainAxisSpacing: 10,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3, crossAxisSpacing: 12, mainAxisSpacing: 12,
                   ),
                   itemCount: _sampleImages.length,
                   itemBuilder: (context, index) {
-                    final image = _sampleImages[index];
+                    final img = _sampleImages[index];
                     return GestureDetector(
                       onTap: () {
-                        setState(() { _selectedImageAsset = image; });
+                        setState(() { _selectedImageAsset = img; });
                         Navigator.pop(context);
                       },
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(12),
                         child: Container(
                           decoration: BoxDecoration(
-                            border: _selectedImageAsset == image ? Border.all(color: primaryColor500, width: 3) : null,
+                            border: _selectedImageAsset == img ? Border.all(color: primaryEmerald, width: 3) : null,
                           ),
-                          child: Image.asset(image, fit: BoxFit.cover),
+                          child: Image.asset(img, fit: BoxFit.cover),
                         ),
                       ),
                     );
@@ -118,34 +125,34 @@ class _AddEditVenueViewState extends State<AddEditVenueView> {
     );
   }
 
-  Future<void> _saveVenue() async {
+  Future<void> _saveForm() async {
     if (_formKey.currentState!.validate()) {
       setState(() { _isLoading = true; });
       try {
-        Map<String, dynamic> dataToSave = {
+        final data = {
           'name': _nameController.text,
           'address': _addressController.text,
           'price': int.tryParse(_priceController.text) ?? 0,
+          'type': _selectedCategoryName,
           'imageAsset': _selectedImageAsset,
           'imageUrl': '',
           'category': {
             'name': _selectedCategoryName,
-            'image': _getCategoryImage(_selectedCategoryName)
+            'image': _categories.firstWhere((e) => e['name'] == _selectedCategoryName)['image']
           },
           'facilities': [],
-          'openDay': 'All Day', 'openTime': '06:00', 'closeTime': '22:00',
+          'openDay': 'Mỗi ngày', 'openTime': '06:00', 'closeTime': '22:00',
           'phoneNumber': '0909 123 456',
-          'author': 'Admin', 'authorUrl': '',
+          'author': 'Admin',
         };
 
         if (widget.document == null) {
-          await FirebaseFirestore.instance.collection('sport_fields').add(dataToSave);
+          await FirebaseFirestore.instance.collection('sport_fields').add(data);
         } else {
-          await widget.document!.reference.update(dataToSave);
+          await widget.document!.reference.update(data);
         }
-
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Lưu thành công!"), backgroundColor: Colors.green));
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Lưu thành công!"), backgroundColor: Colors.green));
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Lỗi: $e"), backgroundColor: Colors.red));
       } finally {
@@ -154,73 +161,37 @@ class _AddEditVenueViewState extends State<AddEditVenueView> {
     }
   }
 
-  // --- BƯỚC 1: GIAO DIỆN CHỌN LOẠI SÂN (ĐÃ SỬA: DÙNG ẢNH THẬT) ---
-  Widget _buildCategorySelectionStep() {
+  // --- BƯỚC 1: CHỌN MÔN THỂ THAO ---
+  Widget _buildCategoryStep() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      padding: const EdgeInsets.all(24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Đã sửa tiêu đề
-          Text("Chọn loại hình thể thao", style: titleTextStyle.copyWith(fontSize: 22)),
-          Text("Vui lòng chọn môn thể thao bạn muốn thêm sân.", style: descTextStyle),
-          SizedBox(height: 20),
+          Text("Thêm sân bãi mới", style: greetingTextStyle.copyWith(fontSize: 26)),
+          const Text("Vui lòng chọn loại hình thể thao để tiếp tục.", style: TextStyle(color: Colors.grey)),
+          const SizedBox(height: 30),
           Expanded(
             child: GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 1.3, // Điều chỉnh tỷ lệ khung hình cho đẹp hơn
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2, childAspectRatio: 1.2, crossAxisSpacing: 16, mainAxisSpacing: 16,
               ),
               itemCount: _categories.length,
               itemBuilder: (context, index) {
                 final cat = _categories[index];
                 return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedCategoryName = cat['name'];
-                      _isCategorySelected = true;
-                    });
-                  },
-                  // Sử dụng Stack để chồng ảnh và chữ lên nhau
+                  onTap: () => setState(() {
+                    _selectedCategoryName = cat['name'];
+                    _isCategorySelected = true;
+                  }),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(20),
                     child: Stack(
-                      fit: StackFit.expand, // Ảnh tràn khung
+                      fit: StackFit.expand,
                       children: [
-                        // Lớp 1: Ảnh nền thật
-                        Image.asset(
-                          cat['realImage'],
-                          fit: BoxFit.cover,
-                          errorBuilder: (ctx, err, stack) => Container(color: Colors.grey), // Màu dự phòng nếu lỗi ảnh
-                        ),
-                        // Lớp 2: Lớp phủ đen mờ để dễ đọc chữ
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [Colors.transparent, Colors.black87],
-                            ),
-                          ),
-                        ),
-                        // Lớp 3: Tên môn thể thao
-                        Positioned(
-                          bottom: 12,
-                          left: 12,
-                          right: 12,
-                          child: Text(
-                            cat['name'],
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                shadows: [Shadow(color: Colors.black45, blurRadius: 4, offset: Offset(1,1))]
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
+                        Image.asset(cat['realImage'], fit: BoxFit.cover),
+                        Container(color: Colors.black.withOpacity(0.3)),
+                        Center(child: Text(cat['name'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18))),
                       ],
                     ),
                   ),
@@ -233,125 +204,110 @@ class _AddEditVenueViewState extends State<AddEditVenueView> {
     );
   }
 
-  // --- BƯỚC 2: GIAO DIỆN NHẬP THÔNG TIN (GIỮ NGUYÊN) ---
-  Widget _buildInputFormStep() {
+  // --- BƯỚC 2: NHẬP THÔNG TIN CHI TIẾT ---
+  Widget _buildInputStep() {
     return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: EdgeInsets.all(16),
-            color: primaryColor100,
-            child: Row(
-              children: [
-                Text("Đang tạo sân: ", style: descTextStyle),
-                Text(_selectedCategoryName, style: titleTextStyle.copyWith(fontSize: 16, color: primaryColor500)),
-                Spacer(),
-                if (widget.document == null)
-                  TextButton.icon(
-                      onPressed: () {
-                        setState(() { _isCategorySelected = false; });
-                      },
-                      icon: Icon(Icons.edit, size: 16),
-                      label: Text("Chọn lại")
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header hiển thị loại sân
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 15),
+              color: bgMint,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Loại sân: $_selectedCategoryName", style: TextStyle(color: primaryEmerald, fontWeight: FontWeight.bold)),
+                  if (widget.document == null)
+                    TextButton(onPressed: () => setState(() => _isCategorySelected = false), child: Text("Đổi loại", style: TextStyle(color: customBrown))),
+                ],
+              ),
+            ),
+
+            // Ảnh bìa có thể thay đổi
+            GestureDetector(
+              onTap: _showImagePicker,
+              child: Stack(
+                children: [
+                  Image.asset(_selectedImageAsset, width: double.infinity, height: 220, fit: BoxFit.cover),
+                  Positioned(
+                    bottom: 12, right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(color: Colors.black.withOpacity(0.6), borderRadius: BorderRadius.circular(20)),
+                      child: const Row(children: [Icon(Icons.camera_alt_rounded, color: Colors.white, size: 16), SizedBox(width: 8), Text("Đổi ảnh bìa", style: TextStyle(color: Colors.white, fontSize: 12))]),
+                    ),
                   )
-              ],
+                ],
+              ),
             ),
-          ),
 
-          GestureDetector(
-            onTap: _showImagePicker,
-            child: Stack(
-              alignment: Alignment.bottomRight,
-              children: [
-                Container(
-                  width: double.infinity, height: 220,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    image: DecorationImage(image: AssetImage(_selectedImageAsset), fit: BoxFit.cover),
-                  ),
-                ),
-                Container(
-                  margin: EdgeInsets.all(16),
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(20)),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [Icon(Icons.camera_alt, color: Colors.white, size: 18), SizedBox(width: 8), Text("Đổi ảnh bìa", style: TextStyle(color: Colors.white))],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Form(
-              key: _formKey,
+            Padding(
+              padding: const EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Nhập thông tin chi tiết", style: titleTextStyle),
-                  SizedBox(height: 24),
-
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: InputDecoration(labelText: "Tên sân", border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), prefixIcon: Icon(Icons.stadium)),
-                    validator: (val) => val!.isEmpty ? "Cần nhập tên" : null,
-                  ),
-                  SizedBox(height: 16),
-                  TextFormField(
-                    controller: _addressController,
-                    decoration: InputDecoration(labelText: "Địa chỉ", border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), prefixIcon: Icon(Icons.location_on)),
-                    validator: (val) => val!.isEmpty ? "Cần nhập địa chỉ" : null,
-                  ),
-                  SizedBox(height: 16),
-                  TextFormField(
-                    controller: _priceController,
-                    decoration: InputDecoration(labelText: "Giá / giờ (VND)", border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), prefixIcon: Icon(Icons.attach_money)),
-                    keyboardType: TextInputType.number,
-                    validator: (val) => val!.isEmpty ? "Cần nhập giá" : null,
-                  ),
-
-                  SizedBox(height: 32),
+                  Text("Thông tin chi tiết", style: titleTextStyle.copyWith(color: darkForest)),
+                  const SizedBox(height: 20),
+                  _buildInputField("Tên sân", Icons.stadium_rounded, _nameController),
+                  const SizedBox(height: 16),
+                  _buildInputField("Địa chỉ", Icons.location_on_rounded, _addressController),
+                  const SizedBox(height: 16),
+                  _buildInputField("Giá thuê / giờ (VND)", Icons.payments_rounded, _priceController, isNumber: true),
+                  const SizedBox(height: 40),
                   SizedBox(
-                    width: double.infinity, height: 50,
+                    width: double.infinity, height: 55,
                     child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: primaryColor500, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                      onPressed: _isLoading ? null : _saveVenue,
-                      child: _isLoading ? CircularProgressIndicator(color: Colors.white) : Text("Lưu và Tạo sân", style: buttonTextStyle),
+                      style: ElevatedButton.styleFrom(backgroundColor: customBrown, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)), elevation: 0),
+                      onPressed: _isLoading ? null : _saveForm,
+                      child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : Text(widget.document == null ? "Tạo sân ngay" : "Cập nhật", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildInputField(String hint, IconData icon, TextEditingController ctrl, {bool isNumber = false}) {
+    return TextFormField(
+      controller: ctrl,
+      keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+      decoration: InputDecoration(
+        prefixIcon: Icon(icon, color: primaryEmerald, size: 22),
+        hintText: hint,
+        filled: true, fillColor: bgMint,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide.none),
+      ),
+      validator: (val) => val!.isEmpty ? "Không được để trống" : null,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(widget.document == null ? "Thêm Sân Mới" : "Sửa Sân", style: titleTextStyle),
-        backgroundColor: colorWhite,
-        centerTitle: true,
-        iconTheme: IconThemeData(color: darkBlue500),
+        title: Text(widget.document == null ? "Thêm Sân Mới" : "Chỉnh sửa", style: TextStyle(color: darkForest, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white, elevation: 0, centerTitle: true,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: darkForest, size: 20),
           onPressed: () {
             if (_isCategorySelected && widget.document == null) {
-              setState(() { _isCategorySelected = false; });
+              setState(() => _isCategorySelected = false);
             } else {
               Navigator.pop(context);
             }
           },
         ),
       ),
-      body: _isCategorySelected ? _buildInputFormStep() : _buildCategorySelectionStep(),
+      body: _isCategorySelected ? _buildInputStep() : _buildCategoryStep(),
     );
   }
 }

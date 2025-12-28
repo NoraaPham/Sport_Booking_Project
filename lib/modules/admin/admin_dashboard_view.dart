@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:sport_booking_project/modules/admin/admin_home_view.dart'; // Màn hình Home mới
+import 'package:sport_booking_project/modules/admin/admin_home_view.dart';
 import 'package:sport_booking_project/modules/admin/manage_venues_view.dart';
 import 'package:sport_booking_project/modules/admin/manage_bookings_view.dart';
 import 'package:sport_booking_project/modules/admin/admin_account_view.dart';
-import 'package:sport_booking_project/theme.dart';
 
 class AdminDashboardView extends StatefulWidget {
   @override
@@ -12,19 +11,16 @@ class AdminDashboardView extends StatefulWidget {
 
 class _AdminDashboardViewState extends State<AdminDashboardView> {
   int _currentIndex = 0;
-
-  // Danh sách màn hình
-  // Lưu ý: Chúng ta dùng `lazy loading` hoặc truyền hàm callback để Home có thể điều khiển Tab
   late List<Widget> _adminScreens;
 
   @override
   void initState() {
     super.initState();
     _adminScreens = [
-      AdminHomeView(onChangeTab: _onTabTapped), // Tab 0: Home (WOW)
-      ManageVenuesView(),                       // Tab 1: Sân bãi
-      ManageBookingsView(),                     // Tab 2: Đơn hàng
-      AdminAccountView(),                       // Tab 3: Tài khoản
+      AdminHomeView(onChangeTab: _onTabTapped),
+      ManageVenuesView(),
+      ManageBookingsView(),
+      AdminAccountView(),
     ];
   }
 
@@ -37,7 +33,6 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Dùng IndexedStack để giữ trạng thái các màn hình khi chuyển tab
       body: IndexedStack(
         index: _currentIndex,
         children: _adminScreens,
@@ -47,9 +42,9 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: const Color(0xFF2D6A4F).withOpacity(0.08),
               blurRadius: 20,
-              offset: Offset(0, -5),
+              offset: const Offset(0, -5),
             )
           ],
         ),
@@ -57,13 +52,19 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
           currentIndex: _currentIndex,
           onTap: _onTabTapped,
           backgroundColor: Colors.white,
-          selectedItemColor: Color(0xFF0061FF), // Màu xanh dương hiện đại
+          selectedItemColor: const Color(0xFF4A9B7B), // Màu Emerald nổi bật
           unselectedItemColor: Colors.grey[400],
           type: BottomNavigationBarType.fixed,
+
+          // --- FIX LỖI OVERFLOW TẠI ĐÂY ---
           showUnselectedLabels: true,
-          selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-          unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
-          elevation: 0, // Tắt bóng mặc định để dùng bóng custom đẹp hơn
+          selectedFontSize: 11,
+          unselectedFontSize: 11,
+          iconSize: 24,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
+
+          elevation: 0,
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.dashboard_rounded),
